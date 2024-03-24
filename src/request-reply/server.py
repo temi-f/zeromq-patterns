@@ -1,17 +1,10 @@
 import zmq
-import time
-import logging
 import sys
 import threading
+from src.zeromq_server import ZeroMQServer
 
-# Logger configuration
-logging.basicConfig(
-     level=logging.DEBUG,
-     format= '[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s :\n %(message)s',
-     datefmt='%Y-%m-%d %H:%M:%S'
-)
 
-class RequestReplyServer():
+class RequestReplyServer(ZeroMQServer):
     """ In a ZeroMQ request-reply pattern, a REP(LY) socket
         is created which represents the server. It receives
         requests from clients and sends replies back to those clients.
@@ -35,21 +28,7 @@ class RequestReplyServer():
     """
 
     def __init__(self, host_ip:str, port:int) -> None:
-        self.host = f"tcp://{host_ip}"
-        self.port = port
-        self.socket = self.initialise_socket()
-
-    def initialise_socket(self):
-        # Initialise a zeromq context
-        zcontext = zmq.Context()
-        socket = zcontext.socket(zmq.REP)
-        socket.setsockopt(zmq.LINGER, 0)
-        return socket
-
-    def create_server(self):
-        # Bind socket to host and port
-        endpoint = f"{self.host}:{self.port}"
-        self.socket.bind(endpoint)
+        super().__init__(zmq.REP, host_ip, port)
 
     def interact_with_client(self):
         self.create_server()

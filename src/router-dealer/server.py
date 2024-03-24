@@ -3,15 +3,9 @@ import time
 import logging
 import sys
 import threading
+from src.zeromq_server import ZeroMQServer
 
-# Logger configuration
-logging.basicConfig(
-     level=logging.DEBUG,
-     format= '[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s :\n %(message)s',
-     datefmt='%Y-%m-%d %H:%M:%S'
-)
-
-class RouterDealerServer():
+class RouterDealerServer(ZeroMQServer):
     """ In a ZeroMQ client-server architecture, a single server
         communicates with multiple clients. The ROUTER socket is
         capable of handling multiple connections and can send messages
@@ -28,16 +22,7 @@ class RouterDealerServer():
     """
 
     def __init__(self, host_ip:str, port:int) -> None:
-        self.host = f"tcp://{host_ip}"
-        self.port = port
-        self.socket = self.initialise_socket()
-
-    def initialise_socket(self):
-        # Initialise a zeromq context
-        zcontext = zmq.Context()
-        socket = zcontext.socket(zmq.ROUTER)
-        socket.setsockopt(zmq.LINGER, 0)
-        return socket
+        super().__init__(zmq.ROUTER, host_ip, port)
 
     def create_server(self):
         # Bind socket to host and port

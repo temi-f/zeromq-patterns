@@ -1,17 +1,10 @@
 import zmq
 import time
-import logging
 import sys
 import threading
+from src.zeromq_server import ZeroMQServer
 
-# Logger configuration
-logging.basicConfig(
-     level=logging.DEBUG,
-     format= '[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s :\n %(message)s',
-     datefmt='%Y-%m-%d %H:%M:%S'
-)
-
-class PairPatternServer():
+class PairPatternServer(ZeroMQServer):
     """ Pair pattern is a socket communication pattern where two sockets
         connect to each other in a bidirectional, peer-to-peer manner.
         One socket acts as the "server" by binding to an endpoint and
@@ -25,16 +18,7 @@ class PairPatternServer():
     """
 
     def __init__(self, host_ip:str, port:int) -> None:
-        self.host = f"tcp://{host_ip}"
-        self.port = port
-        self.socket = self.initialise_socket()
-
-    def initialise_socket(self):
-        # Initialise a zeromq context
-        zcontext = zmq.Context()
-        socket = zcontext.socket(zmq.PAIR)
-        socket.setsockopt(zmq.LINGER, 0)
-        return socket
+        super().__init__(zmq.PAIR, host_ip, port)
 
     def create_server(self):
         # Bind socket to host and port
@@ -56,14 +40,11 @@ if __name__ == "__main__":
     host_ip = sys.argv[1]
     port = sys.argv[2]
     print(f"IP: {host_ip}, Port: {port}")
-    
+
     if(host_ip and port):
         server = PairPatternServer(host_ip, port)
-        # server.interact_with_client()
         server_thread = threading.Thread(target=server.interact_with_client)
         server_thread.start()
+    else:
+        print("Please supply both the Host IP and Port Number as command line argument")
 
-        # client = PairPatternClient(host_ip, port)
-        # client.interact_with_server
-        # client_thread = threading.Thread(target=client.interact_with_server)
-        # client_thread.start()

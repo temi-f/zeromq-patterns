@@ -1,17 +1,10 @@
 import zmq
 import time
-import logging
 import sys
 import threading
+from src.zeromq_client import ZeroMQClient
 
-# Logger configuration
-logging.basicConfig(
-     level=logging.DEBUG,
-     format= '[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s :\n %(message)s',
-     datefmt='%Y-%m-%d %H:%M:%S'
-)
-
-class RequestReplyClient():
+class RequestReplyClient(ZeroMQClient):
     """ In a ZeroMQ request-reply pattern, a REP(LY) socket
         is created which represents the server. It receives
         requests from clients and sends replies back to those clients.
@@ -31,22 +24,8 @@ class RequestReplyClient():
         and prints it out.
     """
 
-    def __init__(self, host_ip, port) -> None:
-        self.host = f"tcp://{host_ip}"
-        self.port = port
-        self.socket = self.initialise_socket()
-
-    def initialise_socket(self):
-        # Initialise a zeromq context
-        self.zcontext = zmq.Context()
-        socket = self.zcontext.socket(zmq.REQ)
-        socket.setsockopt(zmq.LINGER, 0)
-        return socket
-
-    def create_client(self):
-        # Bind socket to host and port
-        endpoint = f"{self.host}:{self.port}"
-        self.socket.connect(endpoint)  # Connect to server
+    def __init__(self, host_ip:str, port:int) -> None:
+        super().__init__(zmq.REQ, host_ip, port)
 
     def interact_with_server(self):
         print("interacting with server")
@@ -62,10 +41,6 @@ class RequestReplyClient():
             print("Received response:", response)
         self.destroy()
 
-    def destroy(self):
-        self.zcontext.destroy()
-        self.socket.close()
-
 
 if __name__ == "__main__":
     host_ip = sys.argv[1]
@@ -73,8 +48,8 @@ if __name__ == "__main__":
     print(f"IP: {host_ip}, Port: {port}")
 
     if(host_ip and port):
-        server = RequestReplyClient(host_ip, port)
-        server_thread = threading.Thread(target=server.interact_with_server)
-        server_thread.start()
+        client = RequestReplyClient(host_ip, port)
+        client_thread = threading.Thread(target=client.interact_with_server)
+        client_thread.start()
     else:
         print("Please supply both the Host IP and Port Number as command line argument")

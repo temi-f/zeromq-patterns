@@ -1,17 +1,10 @@
 import zmq
 import time
-import logging
 import sys
 import threading
+from src.zeromq_client import ZeroMQClient
 
-# Logger configuration
-logging.basicConfig(
-     level=logging.DEBUG,
-     format= '[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s :\n %(message)s',
-     datefmt='%Y-%m-%d %H:%M:%S'
-)
-
-class PairPatternClient():
+class PairPatternClient(ZeroMQClient):
     """ Pair pattern is a socket communication pattern where two sockets
         connect to each other in a bidirectional, peer-to-peer manner.
         One socket acts as the "server" by binding to an endpoint and
@@ -24,26 +17,13 @@ class PairPatternClient():
         message ordering or delivery.
     """
 
-    def __init__(self, host_ip, port) -> None:
-        self.host = f"tcp://{host_ip}"
-        self.port = port
-        self.socket = self.initialise_socket()
-
-    def initialise_socket(self):
-        # Initialise a zeromq context
-        self.zcontext = zmq.Context()
-        socket = self.zcontext.socket(zmq.PAIR)
-        socket.setsockopt(zmq.LINGER, 0)
-        return socket
+    def __init__(self, host_ip:str, port:int) -> None:
+        super().__init__(zmq.PAIR, host_ip, port)
 
     def create_client(self):
         # Bind socket to host and port
         endpoint = f"{self.host}:{self.port}"
         self.socket.connect(endpoint)
-
-    def destroy(self):
-        self.zcontext.destroy()
-        self.socket.close()
 
     def interact_with_server(self):
         print("interacting with server")

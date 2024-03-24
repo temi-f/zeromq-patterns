@@ -3,3 +3,6 @@
 algo
 pipelines
 pub-sub
+*.egg-info
+build
+dist
